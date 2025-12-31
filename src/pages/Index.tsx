@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { Header } from "@/components/Header";
 import { SearchBar } from "@/components/SearchBar";
 import { ArticleCard } from "@/components/ArticleCard";
+import { ContactSection } from "@/components/ContactSection";
 import { articles } from "@/data/articles";
 import { FileQuestion } from "lucide-react";
 
@@ -58,9 +59,12 @@ const Index = () => {
           </div>
         )}
 
+        {/* Contact Section */}
+        <ContactSection />
+
         {/* Footer */}
-        <footer className="mt-20 text-center text-sm text-muted-foreground/60">
-          <p>Built with React & TypeScript • CS50 2024</p>
+        <footer className="mt-12 text-center text-sm text-muted-foreground/60">
+          <p>Built with React & TypeScript • CS50 2025</p>
         </footer>
       </div>
     </div>
