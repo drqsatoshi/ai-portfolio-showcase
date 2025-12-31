@@ -29,12 +29,17 @@ export const ContactSection = () => {
   ];
 
   return (
-    <section className="mt-16 glass rounded-lg p-8">
+    <section className="mt-8 glass rounded-lg p-8">
       <h2 className="text-2xl font-bold text-center text-foreground mb-6 hover-trembl inline-block w-full">
         Contact & Links
       </h2>
       
-      <div className="text-center mb-6">
+      <div className="flex flex-col items-center mb-6">
+        <img
+          src="/favicon.png"
+          alt="Josef Kurk Edwards"
+          className="w-20 h-20 rounded-full border-2 border-primary/30 mb-3"
+        />
         <p className="text-lg text-foreground font-medium">Josef Kurk Edwards</p>
         <p className="text-muted-foreground text-sm">
           University of Colorado Boulder • AI Researcher

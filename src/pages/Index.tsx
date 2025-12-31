@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { Header } from "@/components/Header";
 import { SearchBar } from "@/components/SearchBar";
 import { ArticleCard } from "@/components/ArticleCard";
+import { AboutSection } from "@/components/AboutSection";
 import { ContactSection } from "@/components/ContactSection";
 import { articles } from "@/data/articles";
 import { FileQuestion } from "lucide-react";
@@ -58,6 +59,9 @@ const Index = () => {
             </p>
           </div>
         )}
+
+        {/* About Section */}
+        <AboutSection />
 
         {/* Contact Section */}
         <ContactSection />
