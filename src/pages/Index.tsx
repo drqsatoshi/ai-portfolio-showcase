@@ -3,6 +3,7 @@ import { NavBar } from "@/components/NavBar";
 import { HeroSection } from "@/components/HeroSection";
 import { SearchBar } from "@/components/SearchBar";
 import { ArticleCard } from "@/components/ArticleCard";
+import { SkillsSection } from "@/components/SkillsSection";
 import { AboutSection } from "@/components/AboutSection";
 import { ContactSection } from "@/components/ContactSection";
 import { articles } from "@/data/articles";
@@ -71,6 +72,11 @@ const Index = () => {
               </p>
             </div>
           )}
+        </section>
+
+        {/* Skills Section */}
+        <section id="skills">
+          <SkillsSection />
         </section>
 
         {/* About Section */}
