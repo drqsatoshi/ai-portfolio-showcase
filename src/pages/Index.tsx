@@ -4,6 +4,7 @@ import { HeroSection } from "@/components/HeroSection";
 import { SearchBar } from "@/components/SearchBar";
 import { ArticleCard } from "@/components/ArticleCard";
 import { SkillsSection } from "@/components/SkillsSection";
+import { Web3Section } from "@/components/Web3Section";
 import { AboutSection } from "@/components/AboutSection";
 import { ContactSection } from "@/components/ContactSection";
 import { articles } from "@/data/articles";
@@ -77,6 +78,11 @@ const Index = () => {
         {/* Skills Section */}
         <section id="skills">
           <SkillsSection />
+        </section>
+
+        {/* Web3 & Community Section */}
+        <section id="web3" className="pt-16">
+          <Web3Section />
         </section>
 
         {/* About Section */}
