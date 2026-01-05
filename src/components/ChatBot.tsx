@@ -45,22 +45,24 @@ const ChatBot: React.FC = () => {
     }
   }, [isOpen]);
 
-  const loadConversations = async () => {
+const loadConversations = async () => {
     const { data } = await supabase
       .from('chat_conversations')
       .select('id, title, created_at')
       .eq('visitor_id', visitorId.current)
-      .order('updated_at', { ascending: false });
+      .order('updated_at', { ascending: false })
+      .setHeader('x-visitor-id', visitorId.current);
     
     if (data) setConversations(data);
   };
 
-  const loadConversation = async (conversationId: string) => {
+const loadConversation = async (conversationId: string) => {
     const { data } = await supabase
       .from('chat_messages')
       .select('role, content')
       .eq('conversation_id', conversationId)
-      .order('created_at', { ascending: true });
+      .order('created_at', { ascending: true })
+      .setHeader('x-visitor-id', visitorId.current);
     
     if (data) {
       setMessages(data as Message[]);
@@ -75,12 +77,12 @@ const ChatBot: React.FC = () => {
     setShowHistory(false);
   };
 
-  const saveMessage = async (conversationId: string, role: string, content: string) => {
+const saveMessage = async (conversationId: string, role: string, content: string) => {
     await supabase.from('chat_messages').insert({
       conversation_id: conversationId,
       role,
       content
-    });
+    }).setHeader('x-visitor-id', visitorId.current);
   };
 
   const streamChat = async (userMessages: Message[]) => {
@@ -89,6 +91,7 @@ const ChatBot: React.FC = () => {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        "x-visitor-id": visitorId.current,
       },
       body: JSON.stringify({ messages: userMessages }),
     });
@@ -166,7 +169,8 @@ const ChatBot: React.FC = () => {
             title: input.trim().slice(0, 50)
           })
           .select('id')
-          .single();
+          .single()
+          .setHeader('x-visitor-id', visitorId.current);
         
         if (data) {
           convId = data.id;
@@ -177,7 +181,8 @@ const ChatBot: React.FC = () => {
         await supabase
           .from('chat_conversations')
           .update({ updated_at: new Date().toISOString() })
-          .eq('id', convId);
+          .eq('id', convId)
+          .setHeader('x-visitor-id', visitorId.current);
       }
 
       // Save user message
