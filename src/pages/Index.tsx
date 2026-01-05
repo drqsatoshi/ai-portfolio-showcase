@@ -7,6 +7,7 @@ import { SkillsSection } from "@/components/SkillsSection";
 import { Web3Section } from "@/components/Web3Section";
 import { AboutSection } from "@/components/AboutSection";
 import { ContactSection } from "@/components/ContactSection";
+import ChatBot from "@/components/ChatBot";
 import { articles } from "@/data/articles";
 import { FileQuestion } from "lucide-react";
 
@@ -100,6 +101,8 @@ const Index = () => {
           <p>Built with React & TypeScript • CS50 2025</p>
         </footer>
       </div>
+      {/* AI Chatbot */}
+      <ChatBot />
     </div>
   );
 };
