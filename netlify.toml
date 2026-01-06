@@ -1,0 +1,12 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[context.production.environment]
+  NODE_VERSION = "22"
+  BROWSERSLIST_IGNORE_OLD_DATA = "1"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
