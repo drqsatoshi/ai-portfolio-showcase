@@ -1,0 +1,22 @@
+# =============================================================================
+# NETLIFY REDIRECTS FILE
+# =============================================================================
+# This file provides redirect rules that work alongside netlify.toml
+# Place in public/ folder to be copied to dist/ during build
+# =============================================================================
+
+# Domain redirects: drq.xyz → drqsatoshin.com
+https://drq.xyz/* https://drqsatoshin.com/:splat 301!
+https://www.drq.xyz/* https://drqsatoshin.com/:splat 301!
+
+# Domain redirects: drq.com → drqsatoshin.com
+https://drq.com/* https://drqsatoshin.com/:splat 301!
+https://www.drq.com/* https://drqsatoshin.com/:splat 301!
+
+# Mirror.xyz integration
+/mirror https://mirror.xyz/drqsatoshin.eth 301!
+/mirror/* https://mirror.xyz/drqsatoshin.eth/:splat 301!
+/blog https://mirror.xyz/drqsatoshin.eth 301!
+
+# SPA fallback (must be last)
+/* /index.html 200
