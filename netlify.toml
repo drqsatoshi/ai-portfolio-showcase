@@ -6,6 +6,73 @@
   NODE_VERSION = "22"
   BROWSERSLIST_IGNORE_OLD_DATA = "1"
 
+# =============================================================================
+# DOMAIN REDIRECT CONFIGURATION
+# =============================================================================
+# This configuration handles redirects for the drq.xyz domain ecosystem:
+# - drq.xyz → Primary site (drqsatoshin.com)
+# - drq.com → Primary site (drqsatoshin.com)
+# - mirror.xyz integration for Web3 content
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Domain-based redirects (drq.xyz and drq.com to drqsatoshin.com)
+# -----------------------------------------------------------------------------
+# These redirect rules route traffic from alternate domains to the primary site
+# Note: These require the domains to be configured in Netlify's domain settings
+
+[[redirects]]
+  from = "https://drq.xyz/*"
+  to = "https://drqsatoshin.com/:splat"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "https://www.drq.xyz/*"
+  to = "https://drqsatoshin.com/:splat"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "https://drq.com/*"
+  to = "https://drqsatoshin.com/:splat"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "https://www.drq.com/*"
+  to = "https://drqsatoshin.com/:splat"
+  status = 301
+  force = true
+
+# -----------------------------------------------------------------------------
+# Mirror.xyz integration redirects
+# -----------------------------------------------------------------------------
+# Route /mirror paths to mirror.xyz for Web3 blog content
+
+[[redirects]]
+  from = "/mirror"
+  to = "https://mirror.xyz/drqsatoshin.eth"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/mirror/*"
+  to = "https://mirror.xyz/drqsatoshin.eth/:splat"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/blog"
+  to = "https://mirror.xyz/drqsatoshin.eth"
+  status = 301
+  force = true
+
+# -----------------------------------------------------------------------------
+# SPA fallback (must be last)
+# -----------------------------------------------------------------------------
+# Catch-all for client-side routing on the primary domain
+
 [[redirects]]
   from = "/*"
   to = "/index.html"
