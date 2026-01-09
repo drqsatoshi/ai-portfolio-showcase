@@ -6,8 +6,13 @@
 
 import { Handler } from '@netlify/functions';
 
+interface WebSocketLike {
+  send: (data: string) => void;
+  on?: (event: string, handler: (...args: unknown[]) => void) => void;
+}
+
 interface Client {
-  socket: any;
+  socket: WebSocketLike;
   peerId: string;
   nickname: string;
   room: string;
@@ -21,8 +26,8 @@ interface SignalMessage {
   peerId?: string;
   nickname?: string;
   peers?: Array<{ peerId: string; nickname: string }>;
-  sdp?: any;
-  candidate?: any;
+  sdp?: RTCSessionDescriptionInit;
+  candidate?: RTCIceCandidateInit;
   error?: string;
 }
 
@@ -133,7 +138,7 @@ export const handler: Handler = async (event, context) => {
 };
 
 // WebSocket handler (for local development with ws package)
-export function handleWebSocket(ws: any, peerId: string, nickname: string, room: string) {
+export function handleWebSocket(ws: WebSocketLike, peerId: string, nickname: string, room: string) {
   const client: Client = {
     socket: ws,
     peerId,
@@ -161,50 +166,52 @@ export function handleWebSocket(ws: any, peerId: string, nickname: string, room:
   broadcastToRoom(room, joinMessage, peerId);
 
   // Handle incoming messages
-  ws.on('message', (data: any) => {
-    try {
-      const message: SignalMessage = JSON.parse(data.toString());
+  if (ws.on) {
+    ws.on('message', (data: unknown) => {
+      try {
+        const message: SignalMessage = JSON.parse(String(data));
 
-      switch (message.type) {
-        case 'OFFER':
-        case 'ANSWER':
-        case 'ICE_CANDIDATE':
-          // Relay signaling messages to specific peer
-          if (message.to) {
-            sendToClient(room, message.to, {
-              ...message,
-              from: peerId,
-            });
-          }
-          break;
+        switch (message.type) {
+          case 'OFFER':
+          case 'ANSWER':
+          case 'ICE_CANDIDATE':
+            // Relay signaling messages to specific peer
+            if (message.to) {
+              sendToClient(room, message.to, {
+                ...message,
+                from: peerId,
+              });
+            }
+            break;
 
-        default:
-          console.log('Unknown message type:', message.type);
+          default:
+            console.log('Unknown message type:', message.type);
+        }
+      } catch (error) {
+        console.error('Error handling message:', error);
+        ws.send(JSON.stringify({
+          type: 'ERROR',
+          error: 'Invalid message format',
+        }));
       }
-    } catch (error) {
-      console.error('Error handling message:', error);
-      ws.send(JSON.stringify({
-        type: 'ERROR',
-        error: 'Invalid message format',
-      }));
-    }
-  });
+    });
 
-  // Handle disconnection
-  ws.on('close', () => {
-    removeClientFromRoom(room, peerId);
-    
-    // Notify other peers
-    const leaveMessage: SignalMessage = {
-      type: 'PEER_LEFT',
-      peerId,
-      nickname,
-    };
-    broadcastToRoom(room, leaveMessage);
-  });
+    // Handle disconnection
+    ws.on('close', () => {
+      removeClientFromRoom(room, peerId);
+      
+      // Notify other peers
+      const leaveMessage: SignalMessage = {
+        type: 'PEER_LEFT',
+        peerId,
+        nickname,
+      };
+      broadcastToRoom(room, leaveMessage);
+    });
 
-  ws.on('error', (error: any) => {
-    console.error(`WebSocket error for ${peerId}:`, error);
-    removeClientFromRoom(room, peerId);
-  });
+    ws.on('error', (error: unknown) => {
+      console.error(`WebSocket error for ${peerId}:`, error);
+      removeClientFromRoom(room, peerId);
+    });
+  }
 }

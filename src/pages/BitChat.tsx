@@ -157,6 +157,194 @@ const BitChat = () => {
   }, [addSystemMessage]);
 
   /**
+   * Handle signaling messages
+   */
+  const handleSignalMessage = useCallback(async (signal: SignalMessage) => {
+    if (!peerManagerRef.current) return;
+
+    switch (signal.type) {
+      case 'PEERS':
+        // Received list of existing peers in room
+        if (signal.peers) {
+          for (const peer of signal.peers) {
+            if (peer.peerId !== peerId) {
+              // connectToPeer will be called, defined below
+              const remotePeerId = peer.peerId;
+              const remoteNickname = peer.nickname;
+              const initiator = true;
+              
+              try {
+                const connection = await peerManagerRef.current.createPeerConnection(
+                  remotePeerId,
+                  remoteNickname,
+                  initiator
+                );
+
+                // Handle ICE candidates
+                connection.onicecandidate = (event) => {
+                  if (event.candidate && wsRef.current) {
+                    const msg: SignalMessage = {
+                      type: 'ICE_CANDIDATE',
+                      from: peerId,
+                      to: remotePeerId,
+                      candidate: event.candidate.toJSON(),
+                    };
+                    wsRef.current.send(JSON.stringify(msg));
+                  }
+                };
+
+                if (initiator) {
+                  // Create and send offer
+                  const offer = await connection.createOffer();
+                  await connection.setLocalDescription(offer);
+
+                  if (wsRef.current) {
+                    const msg: SignalMessage = {
+                      type: 'OFFER',
+                      from: peerId,
+                      to: remotePeerId,
+                      sdp: offer,
+                    };
+                    wsRef.current.send(JSON.stringify(msg));
+                  }
+
+                  // Send key exchange after connection
+                  setTimeout(async () => {
+                    if (!keyExchangeKeys || !signingKeys || !peerManagerRef.current) return;
+
+                    try {
+                      const publicKey = await exportPublicKey(keyExchangeKeys.publicKey);
+                      const signingPublicKey = await exportPublicKey(signingKeys.publicKey);
+
+                      const keyExchangeMsg: ChatMessage = {
+                        type: 'KEY_EXCHANGE',
+                        from: peerId,
+                        nickname,
+                        content: '',
+                        timestamp: Date.now(),
+                        messageId: generateMessageId(),
+                        publicKey,
+                        signingPublicKey,
+                      };
+
+                      peerManagerRef.current.sendToPeer(remotePeerId, keyExchangeMsg);
+                    } catch (error) {
+                      console.error('Error sending key exchange:', error);
+                    }
+                  }, 1000);
+                }
+              } catch (error) {
+                console.error('Error connecting to peer:', error);
+                addSystemMessage(`⚠️ Failed to connect to ${remoteNickname}`);
+              }
+            }
+          }
+        }
+        break;
+
+      case 'OFFER':
+        if (signal.from && signal.sdp) {
+          const remotePeerId = signal.from;
+          const sdp = signal.sdp;
+          
+          const peers = peerManagerRef.current.getPeers();
+          let connection = peers.get(remotePeerId)?.connection;
+
+          if (!connection) {
+            // Create new connection if doesn't exist
+            const remotePeer = peers.get(remotePeerId);
+            connection = await peerManagerRef.current.createPeerConnection(
+              remotePeerId,
+              remotePeer?.nickname || 'Unknown',
+              false
+            );
+
+            connection.onicecandidate = (event) => {
+              if (event.candidate && wsRef.current) {
+                const msg: SignalMessage = {
+                  type: 'ICE_CANDIDATE',
+                  from: peerId,
+                  to: remotePeerId,
+                  candidate: event.candidate.toJSON(),
+                };
+                wsRef.current.send(JSON.stringify(msg));
+              }
+            };
+          }
+
+          await connection.setRemoteDescription(new RTCSessionDescription(sdp));
+          const answer = await connection.createAnswer();
+          await connection.setLocalDescription(answer);
+
+          if (wsRef.current) {
+            const msg: SignalMessage = {
+              type: 'ANSWER',
+              from: peerId,
+              to: remotePeerId,
+              sdp: answer,
+            };
+            wsRef.current.send(JSON.stringify(msg));
+          }
+
+          // Send key exchange after connection
+          setTimeout(async () => {
+            if (!keyExchangeKeys || !signingKeys || !peerManagerRef.current) return;
+
+            try {
+              const publicKey = await exportPublicKey(keyExchangeKeys.publicKey);
+              const signingPublicKey = await exportPublicKey(signingKeys.publicKey);
+
+              const keyExchangeMsg: ChatMessage = {
+                type: 'KEY_EXCHANGE',
+                from: peerId,
+                nickname,
+                content: '',
+                timestamp: Date.now(),
+                messageId: generateMessageId(),
+                publicKey,
+                signingPublicKey,
+              };
+
+              peerManagerRef.current.sendToPeer(remotePeerId, keyExchangeMsg);
+            } catch (error) {
+              console.error('Error sending key exchange:', error);
+            }
+          }, 1000);
+        }
+        break;
+
+      case 'ANSWER':
+        if (signal.from && signal.sdp) {
+          const peer = peerManagerRef.current.getPeers().get(signal.from);
+          if (peer?.connection) {
+            await peer.connection.setRemoteDescription(new RTCSessionDescription(signal.sdp));
+          }
+        }
+        break;
+
+      case 'ICE_CANDIDATE':
+        if (signal.from && signal.candidate) {
+          const peer = peerManagerRef.current.getPeers().get(signal.from);
+          if (peer?.connection) {
+            await peer.connection.addIceCandidate(new RTCIceCandidate(signal.candidate));
+          }
+        }
+        break;
+
+      case 'PEER_LEFT':
+        if (signal.peerId) {
+          peerManagerRef.current.removePeer(signal.peerId);
+          addSystemMessage(`${signal.nickname || 'User'} left the room`);
+        }
+        break;
+
+      case 'ERROR':
+        addSystemMessage(`⚠️ Server error: ${signal.error}`);
+        break;
+    }
+  }, [peerId, nickname, keyExchangeKeys, signingKeys, addSystemMessage]);
+
+  /**
    * Connect to signaling server
    */
   const connectToSignaling = useCallback(() => {
@@ -218,206 +406,7 @@ const BitChat = () => {
       console.error('Error connecting to signaling server:', error);
       addSystemMessage('⚠️ Failed to connect to signaling server');
     }
-  }, [nickname, room, peerId, addSystemMessage]);
-
-  /**
-   * Handle signaling messages
-   */
-  const handleSignalMessage = async (signal: SignalMessage) => {
-    if (!peerManagerRef.current) return;
-
-    switch (signal.type) {
-      case 'PEERS':
-        // Received list of existing peers in room
-        if (signal.peers) {
-          for (const peer of signal.peers) {
-            if (peer.peerId !== peerId) {
-              await connectToPeer(peer.peerId, peer.nickname, true);
-            }
-          }
-        }
-        break;
-
-      case 'OFFER':
-        if (signal.from && signal.sdp) {
-          await handleOffer(signal.from, signal.sdp);
-        }
-        break;
-
-      case 'ANSWER':
-        if (signal.from && signal.sdp) {
-          await handleAnswer(signal.from, signal.sdp);
-        }
-        break;
-
-      case 'ICE_CANDIDATE':
-        if (signal.from && signal.candidate) {
-          await handleIceCandidate(signal.from, signal.candidate);
-        }
-        break;
-
-      case 'PEER_LEFT':
-        if (signal.peerId) {
-          peerManagerRef.current.removePeer(signal.peerId);
-          addSystemMessage(`${signal.nickname || 'User'} left the room`);
-        }
-        break;
-
-      case 'ERROR':
-        addSystemMessage(`⚠️ Server error: ${signal.error}`);
-        break;
-    }
-  };
-
-  /**
-   * Connect to a peer
-   */
-  const connectToPeer = async (remotePeerId: string, remoteNickname: string, initiator: boolean) => {
-    if (!peerManagerRef.current) return;
-
-    try {
-      const connection = await peerManagerRef.current.createPeerConnection(
-        remotePeerId,
-        remoteNickname,
-        initiator
-      );
-
-      // Handle ICE candidates
-      connection.onicecandidate = (event) => {
-        if (event.candidate && wsRef.current) {
-          const msg: SignalMessage = {
-            type: 'ICE_CANDIDATE',
-            from: peerId,
-            to: remotePeerId,
-            candidate: event.candidate.toJSON(),
-          };
-          wsRef.current.send(JSON.stringify(msg));
-        }
-      };
-
-      if (initiator) {
-        // Create and send offer
-        const offer = await connection.createOffer();
-        await connection.setLocalDescription(offer);
-
-        if (wsRef.current) {
-          const msg: SignalMessage = {
-            type: 'OFFER',
-            from: peerId,
-            to: remotePeerId,
-            sdp: offer,
-          };
-          wsRef.current.send(JSON.stringify(msg));
-        }
-
-        // Send key exchange after connection
-        setTimeout(() => sendKeyExchange(remotePeerId), 1000);
-      }
-    } catch (error) {
-      console.error('Error connecting to peer:', error);
-      addSystemMessage(`⚠️ Failed to connect to ${remoteNickname}`);
-    }
-  };
-
-  /**
-   * Handle WebRTC offer
-   */
-  const handleOffer = async (remotePeerId: string, sdp: RTCSessionDescriptionInit) => {
-    if (!peerManagerRef.current) return;
-
-    const peers = peerManagerRef.current.getPeers();
-    let connection = peers.get(remotePeerId)?.connection;
-
-    if (!connection) {
-      // Create new connection if doesn't exist
-      const remotePeer = peers.get(remotePeerId);
-      connection = await peerManagerRef.current.createPeerConnection(
-        remotePeerId,
-        remotePeer?.nickname || 'Unknown',
-        false
-      );
-
-      connection.onicecandidate = (event) => {
-        if (event.candidate && wsRef.current) {
-          const msg: SignalMessage = {
-            type: 'ICE_CANDIDATE',
-            from: peerId,
-            to: remotePeerId,
-            candidate: event.candidate.toJSON(),
-          };
-          wsRef.current.send(JSON.stringify(msg));
-        }
-      };
-    }
-
-    await connection.setRemoteDescription(new RTCSessionDescription(sdp));
-    const answer = await connection.createAnswer();
-    await connection.setLocalDescription(answer);
-
-    if (wsRef.current) {
-      const msg: SignalMessage = {
-        type: 'ANSWER',
-        from: peerId,
-        to: remotePeerId,
-        sdp: answer,
-      };
-      wsRef.current.send(JSON.stringify(msg));
-    }
-
-    // Send key exchange after connection
-    setTimeout(() => sendKeyExchange(remotePeerId), 1000);
-  };
-
-  /**
-   * Handle WebRTC answer
-   */
-  const handleAnswer = async (remotePeerId: string, sdp: RTCSessionDescriptionInit) => {
-    if (!peerManagerRef.current) return;
-
-    const peer = peerManagerRef.current.getPeers().get(remotePeerId);
-    if (peer?.connection) {
-      await peer.connection.setRemoteDescription(new RTCSessionDescription(sdp));
-    }
-  };
-
-  /**
-   * Handle ICE candidate
-   */
-  const handleIceCandidate = async (remotePeerId: string, candidate: RTCIceCandidateInit) => {
-    if (!peerManagerRef.current) return;
-
-    const peer = peerManagerRef.current.getPeers().get(remotePeerId);
-    if (peer?.connection) {
-      await peer.connection.addIceCandidate(new RTCIceCandidate(candidate));
-    }
-  };
-
-  /**
-   * Send key exchange to peer
-   */
-  const sendKeyExchange = async (remotePeerId: string) => {
-    if (!keyExchangeKeys || !signingKeys || !peerManagerRef.current) return;
-
-    try {
-      const publicKey = await exportPublicKey(keyExchangeKeys.publicKey);
-      const signingPublicKey = await exportPublicKey(signingKeys.publicKey);
-
-      const keyExchangeMsg: ChatMessage = {
-        type: 'KEY_EXCHANGE',
-        from: peerId,
-        nickname,
-        content: '',
-        timestamp: Date.now(),
-        messageId: generateMessageId(),
-        publicKey,
-        signingPublicKey,
-      };
-
-      peerManagerRef.current.sendToPeer(remotePeerId, keyExchangeMsg);
-    } catch (error) {
-      console.error('Error sending key exchange:', error);
-    }
-  };
+  }, [nickname, room, peerId, addSystemMessage, handleSignalMessage]);
 
   /**
    * Send message to peers
@@ -521,13 +510,14 @@ const BitChat = () => {
         }
         break;
 
-      case '/who':
+      case '/who': {
         const peerList = Array.from(peers.values())
           .filter((p) => p.connected)
           .map((p) => p.nickname)
           .join(', ');
         addSystemMessage(`Connected peers: ${peerList || 'None'}`);
         break;
+      }
 
       case '/clear':
         setMessages([]);
