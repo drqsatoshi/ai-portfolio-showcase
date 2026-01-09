@@ -10,7 +10,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Send, Users, Settings, AlertCircle, Lock, Wifi, WifiOff } from 'lucide-react';
-import { PeerManager, ChatMessage, PeerInfo, SignalMessage, generateMessageId, generatePeerId } from '@/lib/webrtc';
+import { PeerManager, ChatMessage, PeerInfo, SignalMessage, generateMessageId, generatePeerId, MessageHandler } from '@/lib/webrtc';
+import { SignalingAdapter } from '@/lib/signaling';
 import {
   generateKeyExchangeKeyPair,
   generateSigningKeyPair,
@@ -55,10 +56,9 @@ const BitChat = () => {
   const [signingKeys, setSigningKeys] = useState<KeyPair | null>(null);
 
   // Refs
-  const wsRef = useRef<WebSocket | null>(null);
+  const signalingRef = useRef<SignalingAdapter | null>(null);
   const peerManagerRef = useRef<PeerManager | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const handlePeerMessageRef = useRef<MessageHandler | null>(null);
 
   /**
@@ -188,14 +188,14 @@ const BitChat = () => {
 
                 // Handle ICE candidates
                 connection.onicecandidate = (event) => {
-                  if (event.candidate && wsRef.current) {
+                  if (event.candidate && signalingRef.current) {
                     const msg: SignalMessage = {
                       type: 'ICE_CANDIDATE',
                       from: peerId,
                       to: remotePeerId,
                       candidate: event.candidate.toJSON(),
                     };
-                    wsRef.current.send(JSON.stringify(msg));
+                    signalingRef.current?.send(msg);
                   }
                 };
 
@@ -204,14 +204,14 @@ const BitChat = () => {
                   const offer = await connection.createOffer();
                   await connection.setLocalDescription(offer);
 
-                  if (wsRef.current) {
+                  if (signalingRef.current) {
                     const msg: SignalMessage = {
                       type: 'OFFER',
                       from: peerId,
                       to: remotePeerId,
                       sdp: offer,
                     };
-                    wsRef.current.send(JSON.stringify(msg));
+                    signalingRef.current?.send(msg);
                   }
 
                   // Send key exchange after connection
@@ -266,14 +266,14 @@ const BitChat = () => {
             );
 
             connection.onicecandidate = (event) => {
-              if (event.candidate && wsRef.current) {
+              if (event.candidate && signalingRef.current) {
                 const msg: SignalMessage = {
                   type: 'ICE_CANDIDATE',
                   from: peerId,
                   to: remotePeerId,
                   candidate: event.candidate.toJSON(),
                 };
-                wsRef.current.send(JSON.stringify(msg));
+                signalingRef.current?.send(msg);
               }
             };
           }
@@ -282,14 +282,14 @@ const BitChat = () => {
           const answer = await connection.createAnswer();
           await connection.setLocalDescription(answer);
 
-          if (wsRef.current) {
+          if (signalingRef.current) {
             const msg: SignalMessage = {
               type: 'ANSWER',
               from: peerId,
               to: remotePeerId,
               sdp: answer,
             };
-            wsRef.current.send(JSON.stringify(msg));
+            signalingRef.current?.send(msg);
           }
 
           // Send key exchange after connection
@@ -353,64 +353,48 @@ const BitChat = () => {
   /**
    * Connect to signaling server
    */
-  const connectToSignaling = useCallback(() => {
+  const connectToSignaling = useCallback(async () => {
     if (!nickname || !room) return;
 
-    // Use WebSocket for signaling
-    // In production, this would be wss://your-domain.netlify.app/.netlify/functions/signal
-    const wsUrl = import.meta.env.DEV 
-      ? 'ws://localhost:8888/.netlify/functions/signal'
-      : `wss://${window.location.host}/.netlify/functions/signal`;
-
     try {
-      const ws = new WebSocket(wsUrl);
-      wsRef.current = ws;
+      // Disconnect existing connection if any
+      if (signalingRef.current) {
+        signalingRef.current.disconnect();
+      }
 
-      ws.onopen = () => {
-        setStatus('Connected to signaling server');
-        setConnected(true);
-        
-        // Join room
-        const joinMsg: SignalMessage = {
-          type: 'JOIN',
-          room,
-          peerId,
-          nickname,
-        };
-        ws.send(JSON.stringify(joinMsg));
-      };
-
-      ws.onmessage = async (event) => {
-        try {
-          const signal: SignalMessage = JSON.parse(event.data);
-          await handleSignalMessage(signal);
-        } catch (error) {
-          console.error('Error handling signal:', error);
-        }
-      };
-
-      ws.onerror = (error) => {
-        console.error('WebSocket error:', error);
-        setStatus('Connection error');
-        addSystemMessage('⚠️ Signaling server connection error');
-      };
-
-      ws.onclose = () => {
-        setStatus('Disconnected');
-        setConnected(false);
-        addSystemMessage('Disconnected from signaling server');
-        
-        // Attempt reconnect after 5 seconds
-        reconnectTimeoutRef.current = setTimeout(() => {
-          if (nickname && room) {
-            addSystemMessage('Attempting to reconnect...');
-            connectToSignaling();
+      // Create new signaling adapter (auto-detects WebSocket vs Polling)
+      const signaling = new SignalingAdapter({
+        peerId,
+        nickname,
+        room,
+        onMessage: async (signal) => {
+          try {
+            await handleSignalMessage(signal);
+          } catch (error) {
+            console.error('Error handling signal:', error);
           }
-        }, 5000);
-      };
+        },
+        onStatus: (statusMsg) => {
+          setStatus(statusMsg);
+          if (statusMsg.includes('Connected')) {
+            setConnected(true);
+          } else if (statusMsg.includes('Disconnected')) {
+            setConnected(false);
+          }
+        },
+      });
+
+      signalingRef.current = signaling;
+
+      // Connect
+      await signaling.connect();
+      
+      const mode = signaling.getMode();
+      addSystemMessage(`Connected via ${mode === 'websocket' ? 'WebSocket (Netlify)' : 'HTTP Polling (Vercel)'}`);
     } catch (error) {
       console.error('Error connecting to signaling server:', error);
       addSystemMessage('⚠️ Failed to connect to signaling server');
+      setStatus('Connection error');
     }
   }, [nickname, room, peerId, addSystemMessage, handleSignalMessage]);
 
@@ -510,8 +494,8 @@ const BitChat = () => {
           localStorage.setItem('bitchat_room', parts[1]);
           addSystemMessage(`Switching to room: ${parts[1]}`);
           // Reconnect to new room
-          if (wsRef.current) {
-            wsRef.current.close();
+          if (signalingRef.current) {
+            signalingRef.current?.disconnect();
           }
         }
         break;
@@ -579,11 +563,8 @@ const BitChat = () => {
    */
   useEffect(() => {
     return () => {
-      if (wsRef.current) {
-        wsRef.current.close();
-      }
-      if (reconnectTimeoutRef.current) {
-        clearTimeout(reconnectTimeoutRef.current);
+      if (signalingRef.current) {
+        signalingRef.current.disconnect();
       }
       peerManagerRef.current?.cleanup();
     };
