@@ -340,12 +340,12 @@ export class PeerManager {
  * Generate unique message ID
  */
 export function generateMessageId(): string {
-  return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  return `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
 }
 
 /**
  * Generate unique peer ID
  */
 export function generatePeerId(): string {
-  return Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
+  return Math.random().toString(36).substring(2, 11) + Date.now().toString(36);
 }

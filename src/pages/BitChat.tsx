@@ -59,6 +59,7 @@ const BitChat = () => {
   const peerManagerRef = useRef<PeerManager | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const handlePeerMessageRef = useRef<MessageHandler | null>(null);
 
   /**
    * Add message to chat display
@@ -137,6 +138,11 @@ const BitChat = () => {
       });
     }
   }, [keyExchangeKeys, addMessage, addSystemMessage]);
+
+  // Update the ref whenever the callback changes
+  useEffect(() => {
+    handlePeerMessageRef.current = handlePeerMessage;
+  }, [handlePeerMessage]);
 
   /**
    * Initialize crypto keys
@@ -540,7 +546,7 @@ const BitChat = () => {
    */
   useEffect(() => {
     const manager = new PeerManager(
-      handlePeerMessage,
+      (msg) => handlePeerMessageRef.current?.(msg),
       (updatedPeers) => setPeers(new Map(updatedPeers)),
       (statusMsg) => setStatus(statusMsg)
     );
@@ -549,7 +555,7 @@ const BitChat = () => {
     return () => {
       manager.cleanup();
     };
-  }, [handlePeerMessage]);
+  }, []); // Empty dependency array - only create once
 
   /**
    * Load preferences from localStorage
