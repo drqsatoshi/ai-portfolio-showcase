@@ -4,6 +4,44 @@
 
 **URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
 
+## 🚀 BitChat - Decentralized P2P Mesh Chat
+
+This portfolio includes **BitChat**, a fully functional decentralized peer-to-peer chat system with end-to-end encryption.
+
+### Features
+
+- 🔐 **End-to-End Encryption** using Web Crypto API (AES-256-GCM, ECDH, ECDSA)
+- 🌐 **Mesh Networking** with message relay (up to 3 hops)
+- 💬 **Real-time P2P Communication** via WebRTC data channels
+- 🎭 **Privacy-First Design** - signaling server never sees message content
+- 📱 **Responsive UI** with dark mode theme
+- ⚡ **IRC-Style Commands** - `/nick`, `/join`, `/who`, `/clear`, `/help`
+
+### Access BitChat
+
+Once deployed, access BitChat at: **`/bitchat`**
+
+For example: `https://your-domain.com/bitchat`
+
+### Documentation
+
+Comprehensive documentation is available in [`docs/BITCHAT.md`](docs/BITCHAT.md), including:
+- Architecture overview
+- Security implementation details
+- User guide
+- Development and deployment instructions
+
+### Quick Start
+
+1. Navigate to `/bitchat`
+2. Enter a nickname and room name
+3. Click "Join Chat"
+4. Start chatting with other peers in the room
+
+All messages are encrypted end-to-end - the signaling server only facilitates peer discovery and cannot read your messages.
+
+---
+
 ## How can I edit this code?
 
 There are several ways of editing your application.
