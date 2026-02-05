@@ -13,7 +13,15 @@
       "dest": "/TOS/index.html"
     },
     {
+      "src": "/TOS.html",
+      "dest": "/TOS/index.html"
+    },
+    {
       "src": "/Policy",
+      "dest": "/Policy/index.html"
+    },
+    {
+      "src": "/Policy.html",
       "dest": "/Policy/index.html"
     }
   ]

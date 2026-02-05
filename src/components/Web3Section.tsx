@@ -191,7 +191,7 @@ export const Web3Section = () => {
                   </div>
                 </div>
                 <p className="text-xs text-muted-foreground/80 mb-4">
-                  Birb exchange for holders with intentionally mutable metadata to include website information and comments.
+                  BIRB exchange for holders with intentionally mutable metadata to include website information and comments.
                 </p>
                 <div className="flex flex-wrap gap-2">
                   <Button asChild variant="outline" size="sm" className="gap-2">
