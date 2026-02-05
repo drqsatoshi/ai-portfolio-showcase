@@ -5,9 +5,13 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 
 export const Web3Section = () => {
-  const copyToClipboard = (text: string, label: string) => {
-    navigator.clipboard.writeText(text);
-    toast.success(`${label} copied to clipboard`);
+  const copyToClipboard = async (text: string, label: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast.success(`${label} copied to clipboard`);
+    } catch (error) {
+      toast.error(`Failed to copy ${label}`);
+    }
   };
 
   return (
