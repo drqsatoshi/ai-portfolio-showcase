@@ -1,0 +1,57 @@
+================================================
+DNS and WHOIS Report for drqsatoshin.com
+Generated: Thu Feb  5 02:13:34 UTC 2026
+================================================
+
+=== DNS CONFIGURATION ===
+
+--- A Records (IPv4) ---
+
+--- AAAA Records (IPv6) ---
+
+--- CNAME Records ---
+
+--- MX Records (Mail) ---
+
+--- NS Records (Nameservers) ---
+
+--- TXT Records ---
+
+--- SOA Record ---
+
+--- Complete DNS Query ---
+;; Connection to 127.0.0.53#53(127.0.0.53) for drqsatoshin.com failed: connection refused.
+;; no servers could be reached
+;; Connection to 127.0.0.53#53(127.0.0.53) for drqsatoshin.com failed: connection refused.
+;; no servers could be reached
+;; Connection to 127.0.0.53#53(127.0.0.53) for drqsatoshin.com failed: connection refused.
+;; no servers could be reached
+
+=== WHOIS INFORMATION ===
+
+
+=== ATTEMPTING API-BASED LOOKUPS ===
+
+--- Google DNS API ---
+
+--- Cloudflare DNS API ---
+
+=== SSL CERTIFICATE INFORMATION ===
+
+Checking SSL certificate for drqsatoshin.com...
+
+=== WEBSITE RESPONSE ===
+
+Checking HTTP response for https://drqsatoshin.com...
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0curl: (6) Could not resolve host: drqsatoshin.com
+
+Checking GitHub Pages URL...
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0curl: (6) Could not resolve host: drqsatoshi.github.io
+
+================================================
+Report saved to: dns_whois_output_20260205_021334.txt
+================================================
