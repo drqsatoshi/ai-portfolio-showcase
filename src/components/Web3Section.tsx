@@ -1,9 +1,15 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, Users, MessageCircle, Film, Coins } from "lucide-react";
+import { ExternalLink, Users, MessageCircle, Film, Coins, Copy } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
 
 export const Web3Section = () => {
+  const copyToClipboard = (text: string, label: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success(`${label} copied to clipboard`);
+  };
+
   return (
     <div className="space-y-8">
       <div className="text-center mb-8">
@@ -33,6 +39,22 @@ export const Web3Section = () => {
                 <p className="text-sm text-muted-foreground mb-3">
                   Solana token on Raydium/PumpSwap • ~$4.8K Market Cap
                 </p>
+                <div className="mb-3 p-2 rounded-lg bg-background/50 border border-green-500/20">
+                  <p className="text-xs text-muted-foreground mb-1">Ethereum ERC-20 Contract:</p>
+                  <div className="flex items-center gap-2">
+                    <code className="text-xs text-green-400 font-mono break-all">
+                      0x78B5290269740033B05BD8D71c97331295eB5918
+                    </code>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 w-6 p-0 shrink-0"
+                      onClick={() => copyToClipboard('0x78B5290269740033B05BD8D71c97331295eB5918', 'Contract address')}
+                    >
+                      <Copy className="w-3 h-3" />
+                    </Button>
+                  </div>
+                </div>
                 <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground mb-4">
                   <div>
                     <span className="text-foreground font-medium">967</span> Makers
@@ -85,6 +107,22 @@ export const Web3Section = () => {
                 <p className="text-sm text-muted-foreground mb-3">
                   Mirror coin of $DrQ with social interactive metadata
                 </p>
+                <div className="mb-3 p-2 rounded-lg bg-background/50 border border-purple-500/20">
+                  <p className="text-xs text-muted-foreground mb-1">Solana Mint Address:</p>
+                  <div className="flex items-center gap-2">
+                    <code className="text-xs text-purple-400 font-mono break-all">
+                      5S7iGKkzDEXu1WtomXkD1z2M1s5UZPrX1GSeoY4pump
+                    </code>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 w-6 p-0 shrink-0"
+                      onClick={() => copyToClipboard('5S7iGKkzDEXu1WtomXkD1z2M1s5UZPrX1GSeoY4pump', 'Mint address')}
+                    >
+                      <Copy className="w-3 h-3" />
+                    </Button>
+                  </div>
+                </div>
                 <p className="text-xs text-muted-foreground/80 mb-4">
                   Public community channel for broader engagement, complementing the private holders chat.
                 </p>

@@ -99,6 +99,24 @@ const Index = () => {
         {/* Footer */}
         <footer className="mt-12 text-center text-sm text-muted-foreground/60">
           <p>Built with React & TypeScript • CS50 2025</p>
+          <div className="mt-6 pt-6 border-t border-border/40">
+            <p className="text-xs font-semibold text-muted-foreground mb-3">Token Contract Addresses</p>
+            <div className="space-y-2">
+              <p className="text-xs">
+                <span className="text-muted-foreground/80">Ethereum ERC-20 ($DrQ):</span>{" "}
+                <code className="bg-muted/50 px-2 py-1 rounded text-[10px]">0x78B5290269740033B05BD8D71c97331295eB5918</code>
+              </p>
+              <p className="text-xs">
+                <span className="text-muted-foreground/80">Solana Mint (Q):</span>{" "}
+                <code className="bg-muted/50 px-2 py-1 rounded text-[10px]">5S7iGKkzDEXu1WtomXkD1z2M1s5UZPrX1GSeoY4pump</code>
+              </p>
+            </div>
+            <div className="mt-4 flex flex-wrap justify-center gap-3 text-xs">
+              <a href="https://drqsatoshin.com/Policy" className="text-primary hover:underline">Privacy Policy</a>
+              <span className="text-muted-foreground/40">|</span>
+              <a href="https://drqsatoshin.com/TOS" className="text-primary hover:underline">Terms of Service</a>
+            </div>
+          </div>
         </footer>
       </div>
       {/* AI Chatbot */}
