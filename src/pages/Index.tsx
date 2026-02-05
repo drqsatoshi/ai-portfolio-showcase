@@ -110,6 +110,10 @@ const Index = () => {
                 <span className="text-muted-foreground/80">Solana Mint (Q):</span>{" "}
                 <code className="bg-muted/50 px-2 py-1 rounded text-[10px]">5S7iGKkzDEXu1WtomXkD1z2M1s5UZPrX1GSeoY4pump</code>
               </p>
+              <p className="text-xs">
+                <span className="text-muted-foreground/80">Solana Mint (BIRB):</span>{" "}
+                <code className="bg-muted/50 px-2 py-1 rounded text-[10px]">G7vQWurMkMMm2dU3iZpXYFTHT9Biio4F4gZCrwFpKNwG</code>
+              </p>
             </div>
             <div className="mt-4 flex flex-wrap justify-center gap-3 text-xs">
               <a href="https://drqsatoshin.com/Policy" className="text-primary hover:underline">Privacy Policy</a>

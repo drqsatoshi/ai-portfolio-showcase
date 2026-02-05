@@ -25,7 +25,7 @@ export const Web3Section = () => {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-5xl mx-auto">
+      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 max-w-7xl mx-auto">
         {/* $DrQ - Graduated Token */}
         <Card className="bg-gradient-to-br from-green-500/10 to-emerald-500/5 border-green-500/30 overflow-hidden">
           <CardContent className="pt-6">
@@ -149,6 +149,59 @@ export const Web3Section = () => {
                     >
                       <MessageCircle className="w-3 h-3" />
                       Telegram
+                    </a>
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* BIRB - Whale Investors Token */}
+        <Card className="bg-gradient-to-br from-blue-500/10 to-cyan-500/5 border-blue-500/30 overflow-hidden">
+          <CardContent className="pt-6">
+            <div className="flex items-start gap-4">
+              <div className="p-3 rounded-xl bg-blue-500/20 shrink-0">
+                <Coins className="w-8 h-8 text-blue-400" />
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-2">
+                  <h3 className="text-xl font-bold text-foreground">BIRB</h3>
+                  <Badge variant="secondary" className="bg-blue-500/20 text-blue-400 border-blue-500/30">
+                    Whale Investors
+                  </Badge>
+                </div>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Solana token for whale investors • Mutable metadata
+                </p>
+                <div className="mb-3 p-2 rounded-lg bg-background/50 border border-blue-500/20">
+                  <p className="text-xs text-muted-foreground mb-1">Solana Mint Address:</p>
+                  <div className="flex items-center gap-2">
+                    <code className="text-xs text-blue-400 font-mono break-all">
+                      G7vQWurMkMMm2dU3iZpXYFTHT9Biio4F4gZCrwFpKNwG
+                    </code>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 w-6 p-0 shrink-0"
+                      onClick={() => copyToClipboard('G7vQWurMkMMm2dU3iZpXYFTHT9Biio4F4gZCrwFpKNwG', 'Mint address')}
+                    >
+                      <Copy className="w-3 h-3" />
+                    </Button>
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground/80 mb-4">
+                  BIRB exchange for holders with intentionally mutable metadata to include website information and comments.
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <Button asChild variant="outline" size="sm" className="gap-2">
+                    <a 
+                      href="https://solscan.io/token/G7vQWurMkMMm2dU3iZpXYFTHT9Biio4F4gZCrwFpKNwG#holders" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                    >
+                      <ExternalLink className="w-3 h-3" />
+                      Solscan
                     </a>
                   </Button>
                 </div>
